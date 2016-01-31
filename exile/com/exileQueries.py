@@ -63,6 +63,32 @@ def exile_search():
 
     startTime = time.time()
     
+    hourMili = 3600000
+    dayMili = 86400 * 1000.0
+    weekMili = dayMili * 7
+    monthMili = weekMili * 30
+    currentMils = time.time() * 1000.0
+    
+    '''
+    Time query ranges
+    '''  
+    #queryLastHour = int(currentMils - hourMili)
+    #queryLast12Hours = int(currentMils - (hourMili * 12))
+    queryLastDay = int(currentMils - dayMili)
+    #queryLastWeek = int(currentMils - weekMili)
+    #queryLastMonth = int(currentMils - monthMili) 
+    
+    
+    localtime = time.asctime( time.localtime(time.time()) )
+    print('Starting Query at: %s' % localtime)
+    
+    #Main Query
+    
+    #{ "range" : { "shop.updated" : {"gte": "now-24h/h"}}}  
+    
+    
+#pprint.pprint(queryBody)
+        
     res = client.search(
       index="index", 
       body={
@@ -81,6 +107,7 @@ def exile_search():
                 { "term" : { "attributes.league" : "Talisman" } }, 
                 { "range": { "shop.chaosEquiv" : { "lte": 50 } } },
                 { "range": { "shop.chaosEquiv" : { "gt": 0 } } },
+                { "range": { "shop.updated" : { "gte": queryLastDay } } },             
                 { "term" : { "shop.verified" : "YES" } }
               ],
             "should" : [
@@ -104,14 +131,15 @@ def exile_search():
                 { "range": { "modsTotal.#% increased Spell Damage while holding a Shield": { "gte": 14 } } },
                 { "range": { "modsTotal.#% increased Attack Speed with Daggers": { "gte": 6 } } },
                 { "range": { "modsTotal.#% increased Attack Speed while holding a Shield": { "gte": 6 } } },
-                                ], "minimum_should_match" : 4
-                   
+                                ], "minimum_should_match" : 3
                         }
         }
       }
     }, "size": 100
     } )
     
+    localtime = time.asctime( time.localtime(time.time()) )
+    print ('Query completed at: %s \n' % localtime)
     endTime = time.time()
     duration = endTime - startTime
     
@@ -123,13 +151,14 @@ def exile_search():
     for hit in res['hits']['hits']:
         
         try:
-            modtimestamp = datetime.datetime.fromtimestamp((hit["_source"]["shop"]["modified"]) / 1000).strftime('%Y-%m-%d %H:%M:%S')
+            updated = datetime.datetime.fromtimestamp((hit["_source"]["shop"]["updated"]) / 1000).strftime('%Y-%m-%d %H:%M:%S')
+            modtimestamp = datetime.datetime.fromtimestamp((hit["_source"]["shop"]["updated"]) / 1000).strftime('%Y-%m-%d %H:%M:%S')
             line =  'Item {fullName} is for sale for {chaosEquiv} by seller {sellerAccount}, last modified on {modified}\n {source}'.format(
             fullName = hit["_source"]["info"]["fullName"], 
             chaosEquiv=hit["_source"]["shop"]["chaosEquiv"], 
             sellerAccount=hit["_source"]["shop"]["sellerAccount"], modified=modtimestamp, 
             source=hit["_source"]["modsTotal"])
-            #print (hit["_source"]["modsTotal"])
+
             print line
             print
             appendToFile(os.curdir, "result.txt", line)
