@@ -15,9 +15,6 @@ import json
 import pprint
 import os
 import datetime
-from datetime import date
-from datetime import timedelta
-import time
 import time
 import sys
 
@@ -126,7 +123,7 @@ def exile_search():
                 { "range": { "modsTotal.#% increased Spell Damage while holding a Shield": { "gte": 14 } } },
                 { "range": { "modsTotal.#% increased Attack Speed with Daggers": { "gte": 6 } } },
                 { "range": { "modsTotal.#% increased Attack Speed while holding a Shield": { "gte": 6 } } },
-                                ], "minimum_should_match" : 3
+                                ], "minimum_should_match" : 4
                         }
         }
       }
@@ -146,12 +143,11 @@ def exile_search():
     for hit in res['hits']['hits']:
         
         try:
-            updated = datetime.datetime.fromtimestamp((hit["_source"]["shop"]["updated"]) / 1000).strftime('%Y-%m-%d %H:%M:%S')
-            modtimestamp = datetime.datetime.fromtimestamp((hit["_source"]["shop"]["updated"]) / 1000).strftime('%Y-%m-%d %H:%M:%S')
-            line =  'Item {fullName} is for sale for {chaosEquiv} by seller {sellerAccount}, last modified on {modified}\n {source}'.format(
+            updtimestamp = datetime.datetime.fromtimestamp((hit["_source"]["shop"]["updated"]) / 1000).strftime('%Y-%m-%d %H:%M:%S')
+            line =  'Item {fullName} is for sale for {chaosEquiv} by seller {sellerAccount}, last updated on {updated}\n {source}'.format(
             fullName = hit["_source"]["info"]["fullName"], 
             chaosEquiv=hit["_source"]["shop"]["chaosEquiv"], 
-            sellerAccount=hit["_source"]["shop"]["sellerAccount"], modified=modtimestamp, 
+            sellerAccount=hit["_source"]["shop"]["sellerAccount"], updated=updtimestamp, 
             source=hit["_source"]["modsTotal"])
 
             print line
