@@ -66,15 +66,15 @@ def exile_search():
     hourMili = 3600000
     dayMili = 86400 * 1000.0
     weekMili = dayMili * 7
-    monthMili = weekMili * 30
-    currentMils = time.time() * 1000.0
+    monthMili = weekMili * 4
+    currentMili = time.time() * 1000.0
     
     '''
     Time query ranges
     '''  
     #queryLastHour = int(currentMils - hourMili)
     #queryLast12Hours = int(currentMils - (hourMili * 12))
-    queryLastDay = int(currentMils - dayMili)
+    queryLastDay = int(currentMili - dayMili)
     #queryLastWeek = int(currentMils - weekMili)
     #queryLastMonth = int(currentMils - monthMili) 
     
@@ -83,12 +83,7 @@ def exile_search():
     print('Starting Query at: %s' % localtime)
     
     #Main Query
-    
-    #{ "range" : { "shop.updated" : {"gte": "now-24h/h"}}}  
-    
-    
-#pprint.pprint(queryBody)
-        
+           
     res = client.search(
       index="index", 
       body={
