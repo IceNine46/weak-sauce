@@ -3,14 +3,23 @@ Main CrouchingRancor API
 """
 
 import time
+import os
 from selenium import webdriver
 from swgoh.mod import Mod
-from com.file_writer import *
+from com.progress import progress_bar
 import csv
+import argparse
 
 
-def get_mods_selenium(user, web_address, resource=""):
-    browser = webdriver.Firefox()
+def get_mods_selenium(user, web_address, web_browser="chrome", resource=""):
+
+    if web_browser.lower() == "chrome":
+        browser = webdriver.Chrome()
+    elif web_browser.lower() == "firefox":
+        browser = webdriver.Firefox()
+    else:
+        return
+
     http = "http://"
     browser.get(http+web_address+resource)
     name_element = browser.find_element_by_class_name("form-control")
@@ -25,26 +34,18 @@ def get_mods_selenium(user, web_address, resource=""):
     print("Total mods for %s: %i" % (user, len(mods)))
     new_line()
 
+    activity = "Reading Mods"
+    total_mods = len(mods)
     mod_list = []
+    progress_bar(activity, total_mods, 0)
     for index, mod in enumerate(mods):
-        pct = (index+1) / len(mods)
-        complete = int((pct*100))
-        p = int((complete/4))
-        state = "#" * p
-        blanks = " " * (24 - p)
-        print("\rReading Mods...[%s %s%i%%]" % (state, blanks, complete), end='')
-
         new_mod = Mod(mod)
         new_mod.build_mod()
         mod_list.append(new_mod)
+        progress_bar(activity, total_mods, index+1)
 
     new_line()
     print("Done.")
-
-        # print("*** Mod %i ***" % (index+1))
-        # new_mod.print_self()
-        # print("*** End of Mod: %i ***" % (index+1))
-        #new_line()
 
     # Write to csv
     write_csv(mod_list)
@@ -74,15 +75,10 @@ def write_csv(mod_list):
         wr = csv.writer(myfile)
         wr.writerow(headers)
 
-        state = ""
+        activity = "Writing csv"
+        total_mods = len(mod_list)
+        progress_bar(activity, total_mods, 0)
         for index, mod in enumerate(mod_list):
-            pct = (index+1) / len(mod_list)
-            complete = int((pct*100))
-            p = int(complete/4)
-            state = "#" * p
-            blanks = " " * (24 - p)
-            print("\rWriting csv....[%s %s%i%%]" % (state, blanks, complete), end='')
-
             line = []
             mod.toCsv(line)
             try:
@@ -91,6 +87,7 @@ def write_csv(mod_list):
                 index_str = str(index)
                 error_line = "Error processing mod: " + index_str
                 errors.append(error_line)
+            progress_bar(activity, total_mods, index+1)
 
         new_line()
         if len(errors) == 0:
@@ -108,18 +105,22 @@ def print_html(browser):
 
 if __name__ == '__main__':
 
-    print("Crouching tool v1")
+    print("Mods tool v1")
+    parser = argparse.ArgumentParser(description="Mods Tool")
+    parser.add_argument("-b", "--browser", required=False, help="Web Browser (Chrome or Firefox). Defaults to Chrome")
+    parser.add_argument("-u", "--user", required=True, help="SWGOH userid")
+    args = vars(parser.parse_args())
+
+    wb = args.get('browser')
+    swgoh_user = args.get('user')
 
     # CrouchingRancor Resources
     address = "apps.crouchingrancor.com"
     res_mods = "/Mods/Manager"
     res_settings = "/Settings"
 
-    # SWGOH user
-    swgoh_user = "boozie"
-
     print("Requesting Mods from: %s" % address)
 
-    rc = get_mods_selenium(swgoh_user, address, res_mods)
+    rc = get_mods_selenium(swgoh_user, address, wb, res_mods)
 
-    print ("CrouchingRancor tool return code: %i" % rc)
+    print("Mods tool return code: %i" % rc)

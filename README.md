@@ -8,6 +8,14 @@ Tools for POE.
 
 Tools for SWGOH.
 
+Execute Instructions:
+Main Routine: caught_crouching.py
+
+Input arguments:
+
+* --browser= chrome or firefox
+* --user= swgoh.gg userid
+
 Requires:
 
 * Python 3.6 - https://conda.io/miniconda.html
