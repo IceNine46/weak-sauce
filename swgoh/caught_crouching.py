@@ -16,7 +16,7 @@ from swgoh.timer import Timer
 def get_mods_selenium(user, web_address, web_browser="chrome", resource=""):
 
     retries = 5
-    duration = 1
+    duration = 2
 
     if web_browser.lower() == "chrome":
         browser = webdriver.Chrome()
