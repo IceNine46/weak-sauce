@@ -10,8 +10,13 @@ from com.progress import progress_bar
 import csv
 import argparse
 
+from swgoh.timer import Timer
+
 
 def get_mods_selenium(user, web_address, web_browser="chrome", resource=""):
+
+    retries = 5
+    duration = 1
 
     if web_browser.lower() == "chrome":
         browser = webdriver.Chrome()
@@ -28,24 +33,45 @@ def get_mods_selenium(user, web_address, web_browser="chrome", resource=""):
 
     enter_button = browser.find_element_by_class_name("btn-default")
     enter_button.click()
-    time.sleep(5)
 
-    mods = browser.find_elements_by_class_name("modAsset")
-    print("Total mods for %s: %i" % (user, len(mods)))
-    new_line()
+    activity = "Building Mods"
+    total_mods = 0
 
-    activity = "Reading Mods"
-    total_mods = len(mods)
+    for i in range(retries):
+        time.sleep(duration)
+
+        mods = browser.find_elements_by_class_name("modAsset")
+        total_mods = len(mods)
+
+        if total_mods > 0:
+            print("Total mods for %s: %i" % (user, total_mods))
+            new_line()
+            break
+        elif i < retries:
+            print("Sleeping for %i, then retrying." % duration)
+
+    if total_mods == 0:
+        print("No mods found, retries(%i) exhausted." % retries)
+        return -1
+
+    build_time = 0
+    clock = Timer()
+    progress_bar(activity, total_mods, 0, build_time)
+
     mod_list = []
-    progress_bar(activity, total_mods, 0)
     for index, mod in enumerate(mods):
+        clock.start()
+
         new_mod = Mod(mod)
         new_mod.build_mod()
         mod_list.append(new_mod)
-        progress_bar(activity, total_mods, index+1)
+
+        clock.end()
+        build_time += clock.elapsed
+        clock.reset()
+        progress_bar(activity, total_mods, index+1, build_time)
 
     new_line()
-    print("Done.")
 
     # Write to csv
     write_csv(mod_list)
@@ -62,7 +88,7 @@ def write_csv(mod_list):
     filename = "swgoh_mods" + "-" + time.strftime("%Y-%m-%d-%H-%M-%S") + ".csv"
     abs_path = os.path.join(os.curdir, "output")
 
-    headers = ["Pips", "Level", "Rating", "Character", "primary_stat", "primary_value",
+    headers = ["Slot", "Set", "Pips", "Level", "Rating", "Character", "primary_stat", "primary_value",
                "1_secondary_stat", "1_secondary_value", "1_secondary_rating",
                "2_secondary_stat", "2_secondary_value", "2_secondary_rating",
                "3_secondary_stat", "3_secondary_value", "3_secondary_rating",
@@ -77,22 +103,26 @@ def write_csv(mod_list):
 
         activity = "Writing csv"
         total_mods = len(mod_list)
-        progress_bar(activity, total_mods, 0)
+        clock = Timer()
+        build_time = 0
+        progress_bar(activity, total_mods, 0, build_time)
         for index, mod in enumerate(mod_list):
+            clock.start()
             line = []
-            mod.toCsv(line)
+            mod.to_csv(line)
             try:
                 wr.writerow(line)
             except UnicodeEncodeError:
                 index_str = str(index)
                 error_line = "Error processing mod: " + index_str
                 errors.append(error_line)
-            progress_bar(activity, total_mods, index+1)
+            clock.end()
+            build_time += clock.elapsed
+            clock.reset()
+            progress_bar(activity, total_mods, index+1, build_time)
 
         new_line()
-        if len(errors) == 0:
-            print("Done.")
-        else:
+        if len(errors) > 0:
             print("Done, with %i errors." % len(errors))
             print("Detais:")
             for index, error in enumerate(errors):

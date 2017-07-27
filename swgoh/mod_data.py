@@ -13,7 +13,8 @@ class ModData:
     def print_self(self):
         print("ModData - Type: %s Stat: %s Value: %s" % (self.mod_type, self.stat, self.value))
 
-    def toCsv(self, line):
+    def to_csv(self, line):
+        line.append(self.mod_type)
         line.append(self.stat)
         line.append(self.value)
 

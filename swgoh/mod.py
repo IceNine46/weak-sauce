@@ -12,17 +12,31 @@ class Mod:
     def __init__(self, mod):
         self.mod = mod
         self.pips = 0
+        self.slot = None
+        self.mod_set = None
         self.level = None
         self.rating = None
         self.character = None
         self.mod_data_list = []
 
     def build_mod(self):
+        self.set_slot_and_set()
         self.set_pips()
         self.set_level()
         self.build_mod_data_list()
         self.set_rating()
         self.set_character()
+
+    def set_slot_and_set(self):
+        image = self.get_element("modImage")
+        if image is None:
+            self.slot = None
+            self.mod_set = None
+        else:
+            image_text = image.get_attribute("src")
+            slot, mod_set = Mod.parse_slot_and_set(image_text)
+            self.slot = slot
+            self.mod_set = mod_set
 
     def set_pips(self):
         pips_parent = self.get_element("pips")
@@ -94,13 +108,15 @@ class Mod:
         for mod_data in self.mod_data_list:
             mod_data.print_self()
 
-    def toCsv(self, line):
+    def to_csv(self, line):
+        line.append(self.slot)
+        line.append(self.mod_set)
         line.append(self.pips)
         line.append(self.level)
         line.append(self.rating)
         line.append(self.character)
         for mod_data in self.mod_data_list:
-            mod_data.toCsv(line)
+            mod_data.to_csv(line)
 
     @staticmethod
     def build_mod_primary(data, mod_type):
@@ -124,6 +140,18 @@ class Mod:
             return values[0], values[1]
         else:
             return None, None
+
+    @staticmethod
+    def parse_slot_and_set(value):
+        mod_slot = None
+        mod_set = None
+        values = value.split("/")
+        for val in values:
+            if "_" and ".png" in val:
+                target = val.split(".")
+                mod_slot, mod_set = target[0].split("_")
+
+        return mod_slot, mod_set
 
     @staticmethod
     def parse_secondary_mod_value(value):
