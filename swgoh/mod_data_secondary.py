@@ -15,6 +15,6 @@ class ModDataSecondary(ModData):
         print("ModData - Type: %s Stat: %s Value: %s Rating: %s" %
               (self.mod_type, self.stat, self.value, self.rating))
 
-    def toCsv(self, line):
-        ModData.toCsv(self, line)
+    def to_csv(self, line):
+        ModData.to_csv(self, line)
         line.append(self.rating)
