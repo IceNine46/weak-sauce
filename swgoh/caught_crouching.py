@@ -5,6 +5,8 @@ Main CrouchingRancor API
 import time
 import os
 from selenium import webdriver
+
+from swgoh.columns import Columns
 from swgoh.mod import Mod
 from com.progress import progress_bar
 import csv
@@ -13,7 +15,7 @@ import argparse
 from swgoh.timer import Timer
 
 
-def get_mods_selenium(user, web_address, web_browser="chrome", resource=""):
+def get_mods_selenium(user, web_address, pct_opt, web_browser="chrome", resource=""):
 
     retries = 5
     duration = 2
@@ -74,7 +76,10 @@ def get_mods_selenium(user, web_address, web_browser="chrome", resource=""):
     new_line()
 
     # Write to csv
-    write_csv(mod_list)
+    #write_csv(mod_list)
+
+    # Write sec aggregate to csv
+    write_sec_agg_csv(mod_list, pct_opt)
 
     browser.quit()
     return 0
@@ -129,6 +134,48 @@ def write_csv(mod_list):
                 print("%i: %s" % (index, error))
 
 
+def write_sec_agg_csv(mod_list, pct):
+    filename = "swgoh_mods" + "-" + time.strftime("%Y-%m-%d-%H-%M-%S") + "sec.csv"
+    abs_path = os.path.join(os.curdir, "output")
+
+    headers = []
+    for col in Columns.ICOL.values():
+        headers.append(col.name)
+
+    os.chdir(abs_path)
+    errors = []
+    with open(filename, 'w', newline='') as myfile:
+        wr = csv.writer(myfile)
+        wr.writerow(headers)
+
+        activity = "Writing csv"
+        total_mods = len(mod_list)
+        clock = Timer()
+        build_time = 0
+        progress_bar(activity, total_mods, 0, build_time)
+        for index, mod in enumerate(mod_list):
+            clock.start()
+            line = []
+            mod.to_csv_sec_agg(line, pct)
+            try:
+                wr.writerow(line)
+            except UnicodeEncodeError:
+                index_str = str(index)
+                error_line = "Error processing mod: " + index_str
+                errors.append(error_line)
+            clock.end()
+            build_time += clock.elapsed
+            clock.reset()
+            progress_bar(activity, total_mods, index+1, build_time)
+
+        new_line()
+        if len(errors) > 0:
+            print("Done, with %i errors." % len(errors))
+            print("Detais:")
+            for index, error in enumerate(errors):
+                print("%i: %s" % (index, error))
+
+
 def print_html(browser):
     html = browser.page_source
     print("html: %s" % html)
@@ -139,10 +186,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Mods Tool")
     parser.add_argument("-b", "--browser", required=False, help="Web Browser (Chrome or Firefox). Defaults to Chrome")
     parser.add_argument("-u", "--user", required=True, help="SWGOH userid")
+    parser.add_argument("-p", "--pct", action="store_true", default=False, required=False,
+                        help="Show percent symbol in csv output.")
     args = vars(parser.parse_args())
 
     wb = args.get('browser')
     swgoh_user = args.get('user')
+    pct = args.get('pct')
 
     # CrouchingRancor Resources
     address = "apps.crouchingrancor.com"
@@ -151,6 +201,10 @@ if __name__ == '__main__':
 
     print("Requesting Mods from: %s" % address)
 
-    rc = get_mods_selenium(swgoh_user, address, wb, res_mods)
+    rc = get_mods_selenium(swgoh_user, address, pct, wb, res_mods)
 
     print("Mods tool return code: %i" % rc)
+
+    #write_sec_agg_csv(None)
+
+

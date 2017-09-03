@@ -1,7 +1,7 @@
 """
 A class representing a CrouchingRancor modAsset
 """
-
+from swgoh.columns import Columns
 from swgoh.mod_data import ModData
 from swgoh.mod_data_secondary import ModDataSecondary
 from selenium.common.exceptions import NoSuchElementException
@@ -18,6 +18,7 @@ class Mod:
         self.rating = None
         self.character = None
         self.mod_data_list = []
+        self.columns = Columns()
 
     def build_mod(self):
         self.set_slot_and_set()
@@ -117,6 +118,23 @@ class Mod:
         line.append(self.character)
         for mod_data in self.mod_data_list:
             mod_data.to_csv(line)
+
+    def to_csv_sec_agg(self, line, pct):
+        self.columns.add_primary("Slot", self.slot)
+        self.columns.add_primary("Set", self.mod_set)
+        self.columns.add_primary("Pips", self.pips)
+        self.columns.add_primary("Level", self.level)
+        self.columns.add_primary("Rating", self.rating)
+        self.columns.add_primary("Character", self.character)
+
+        for mod_data in self.mod_data_list:
+            if mod_data.mod_type == "primary":
+                self.columns.add_primary("Primary Stat", mod_data.stat)
+                self.columns.add_primary("Primary Value", mod_data.value)
+            elif mod_data.mod_type == "secondary":
+                self.columns.add_column(mod_data.stat, mod_data.value)
+
+        self.columns.to_csv(line, pct)
 
     @staticmethod
     def build_mod_primary(data, mod_type):
