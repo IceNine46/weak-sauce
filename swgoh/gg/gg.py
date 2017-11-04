@@ -40,10 +40,11 @@ def get_mods_selenium(user, web_address, pct_opt, web_browser="chrome", resource
         current_page, total_pages = get_pages(page_elm)
 
         mod_list = []
+
         # Loop over all the pages
-        for j in range(int(total_pages)):
+        for j in range(total_pages):
             j += 1  # Start on Page 1
-            print("Reading mods on page [%i of %s]" % (j, total_pages))
+            print("Reading mods on page [%i of %i]" % (j, total_pages))
 
             # Get all mod elements on this page
             mods = browser.find_elements_by_class_name("collection-mod")
@@ -74,7 +75,7 @@ def get_mods_selenium(user, web_address, pct_opt, web_browser="chrome", resource
             new_line()
 
             # Navigate to next page
-            if j+1 != total_pages:
+            if j < total_pages:
                 browser.get(http+web_address+resource+page.format(j+1))
                 time.sleep(duration)
 
@@ -106,7 +107,7 @@ def get_pages(page_elm):
         current = values[1].strip()
         total = values[3].split("\n")[0]
 
-    return current, total
+    return current, int(total)
 
 
 def write_csv(mod_list):
