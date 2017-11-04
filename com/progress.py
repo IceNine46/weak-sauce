@@ -13,4 +13,4 @@ def progress_bar(prefix, total, complete, elapsed):
     p = int(pct/4)
     c_markers = "#" * p
     i_markers = "-" * int(25 - p)
-    print("\r%s... [%s%s] %i%% - %is" % (prefix, c_markers, i_markers, pct, elapsed), end='')
+    print("\r%s [%s%s] %i%% - %is" % (prefix, c_markers, i_markers, pct, elapsed), end='')

@@ -199,6 +199,10 @@ if __name__ == '__main__':
     res_mods = "/Mods/Manager"
     res_settings = "/Settings"
 
+    # SWGOH.GG
+    #address = "swgoh.gg/u/" + swgoh_user
+    #res_mods = "/mods"
+
     print("Requesting Mods from: %s" % address)
 
     rc = get_mods_selenium(swgoh_user, address, pct, wb, res_mods)

@@ -1,0 +1,7 @@
+Shape,Internal
+Square, Transmitter
+Arrow, Receiver
+Diamond, Processor
+Triangle, Holo-Array
+Circle, Data-Bus
+Cross, Multiplexer
