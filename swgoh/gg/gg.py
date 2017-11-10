@@ -1,5 +1,5 @@
 """
-Main CrouchingRancor API
+SWGOH.GG Mod Tool
 """
 
 import time
