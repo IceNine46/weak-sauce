@@ -100,7 +100,7 @@ def get_mods_selenium(user, password, pct_opt, web_browser="chrome"):
                 progress_bar(page_activity.format(j), page_mods, index+1, build_time)
 
             new_line()
-
+            #break #here to stop it
             # Navigate to next page
             if j < total_pages:
                 browser.get(http+mod_url+page.format(j+1))
